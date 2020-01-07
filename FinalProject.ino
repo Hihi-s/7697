@@ -104,6 +104,7 @@ void loop()
   Serial.println("   ");
   float tit1 = tiltheading;
   delay(300);
+  if(tit1>=250){
   getAccel_Data();
   getGyro_Data();
   getCompassDate_calibrated(); // compass data has been calibrated here
@@ -147,7 +148,11 @@ void loop()
       client.stop();
       while (true);
     }
+    delay(10000);
   }
+  
+  }
+  
 }
 void getHeading(void)
 {
@@ -158,7 +163,6 @@ void getTiltHeading(void)
 {
   float pitch = asin(-Axyz[0]);
   float roll = asin(Axyz[1] / cos(pitch));
-
   float xh = Mxyz[0] * cos(pitch) + Mxyz[2] * sin(pitch);
   float yh = Mxyz[0] * sin(roll) * sin(pitch) + Mxyz[1] * cos(roll) - Mxyz[2] * sin(roll) * cos(pitch);
   float zh = -Mxyz[0] * cos(roll) * sin(pitch) + Mxyz[1] * sin(roll) + Mxyz[2] * cos(roll) * cos(pitch);
@@ -167,7 +171,6 @@ void getTiltHeading(void)
 }
 void Mxyz_init_calibrated ()
 {
-
   Serial.println(F("Before using 9DOF,we need to calibrate the compass frist,It will takes about 2 minutes."));
   Serial.print("  ");
   Serial.println(F("During  calibratting ,you should rotate and turn the 9DOF all the time within 2 minutes."));
@@ -178,9 +181,7 @@ void Mxyz_init_calibrated ()
   Serial.println("ready");
   Serial.println("Sample starting......");
   Serial.println("waiting ......");
-
   get_calibration_Data ();
-
   Serial.println("     ");
   Serial.println("compass calibration parameter ");
   Serial.print(mx_centre);
@@ -213,7 +214,6 @@ void get_calibration_Data ()
   mz_centre = (mz_max + mz_min) / 2;
 
 }
-
 void get_one_sample_date_mxyz()
 {
   getCompass_Data();
@@ -221,12 +221,10 @@ void get_one_sample_date_mxyz()
   my_sample[2] = Mxyz[1];
   mz_sample[2] = Mxyz[2];
 }
-
-
 void getAccel_Data(void)
 {
   accelgyro.getMotion9(&ax, &ay, &az, &gx, &gy, &gz, &mx, &my, &mz);
-  Axyz[0] = (double) ax / 16384;//16384  LSB/g
+  Axyz[0] = (double) ax / 16384;
   Axyz[1] = (double) ay / 16384;
   Axyz[2] = (double) az / 16384;
 }
@@ -234,7 +232,7 @@ void getAccel_Data(void)
 void getGyro_Data(void)
 {
   accelgyro.getMotion9(&ax, &ay, &az, &gx, &gy, &gz, &mx, &my, &mz);
-  Gxyz[0] = (double) gx * 250 / 32768;//131 LSB(��/s)
+  Gxyz[0] = (double) gx * 250 / 32768;
   Gxyz[1] = (double) gy * 250 / 32768;
   Gxyz[2] = (double) gz * 250 / 32768;
 }
@@ -244,14 +242,9 @@ void getCompass_Data(void)
   I2C_M.writeByte(MPU9150_RA_MAG_ADDRESS, 0x0A, 0x01); //enable the magnetometer
   delay(10);
   I2C_M.readBytes(MPU9150_RA_MAG_ADDRESS, MPU9150_RA_MAG_XOUT_L, 6, buffer_m);
-
   mx = ((int16_t)(buffer_m[1]) << 8) | buffer_m[0] ;
   my = ((int16_t)(buffer_m[3]) << 8) | buffer_m[2] ;
   mz = ((int16_t)(buffer_m[5]) << 8) | buffer_m[4] ;
-
-  //Mxyz[0] = (double) mx * 1200 / 4096;
-  //Mxyz[1] = (double) my * 1200 / 4096;
-  //Mxyz[2] = (double) mz * 1200 / 4096;
   Mxyz[0] = (double) mx * 4800 / 8192;
   Mxyz[1] = (double) my * 4800 / 8192;
   Mxyz[2] = (double) mz * 4800 / 8192;
